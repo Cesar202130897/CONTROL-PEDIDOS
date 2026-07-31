@@ -27,6 +27,26 @@ menu = st.sidebar.radio(
     ]
 )
 
+# ---------------------------------------------------------
+# SECCIÓN PROTEGIDA PARA VACIAR BASE DE DATOS
+# ---------------------------------------------------------
+st.sidebar.markdown("---")
+st.sidebar.subheader("⚙️ Administración")
+ADMIN_PASSWORD = "0706"  # <-- PUEDES CAMBIAR ESTA CONTRASEÑA
+
+input_pass = st.sidebar.text_input("Contraseña Administrador", type="password")
+
+if st.sidebar.button("🗑️ Vaciar Todo de Prueba"):
+    if input_pass == ADMIN_PASSWORD:
+        c.execute("DELETE FROM pedidos")
+        c.execute("DELETE FROM clientes")
+        conn.commit()
+        st.sidebar.success("✅ ¡Base de datos limpiada por completo!")
+        st.rerun()
+    else:
+        st.sidebar.error("❌ Contraseña incorrecta.")
+# ---------------------------------------------------------
+
 # 1º INGRESAR PEDIDO
 if menu == "1º Ingresar Pedido":
     st.header("1º Ingresar Pedido")
@@ -96,7 +116,6 @@ elif menu == "3º Ingresar Pago":
     if not pedidos_pend:
         st.info("No hay pedidos pendientes de pago.")
     else:
-        # Formato actualizado: Pedido #ID - Nombre (Lb. X.X, Saldo X.X)
         dict_ped = {f"Pedido #{r[0]} - {r[1]} (Lb. {r[2]:.1f}, Saldo {r[3]:.1f})": (r[0], r[3]) for r in pedidos_pend}
         ped_sel = st.selectbox("Seleccione Pedido", list(dict_ped.keys()))
         id_ped, saldo_actual = dict_ped[ped_sel]
@@ -111,7 +130,7 @@ elif menu == "3º Ingresar Pago":
             if nuevo_saldo == 0:
                 st.success(f"🎉 ¡Pedido #{id_ped} pagado por completo!")
             else:
-                st.success(f"✅ Abono de {monto:.1f} aplicado. Nuevo saldo: {nuevo_saldo:.1f}")
+                st.success(f"✅ Abono de {monto:.1f} applied. Nuevo saldo: {nuevo_saldo:.1f}")
 
 # 4º AGREGAR / BORRAR CLIENTE
 elif menu == "4º Agregar / Borrar Cliente":
