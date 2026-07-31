@@ -90,13 +90,14 @@ elif menu == "2º Ver Cliente":
 # 3º INGRESAR PAGO
 elif menu == "3º Ingresar Pago":
     st.header("3º Ingresar Pago")
-    c.execute("SELECT p.id, c.nombre, p.saldo FROM pedidos p JOIN clientes c ON p.id_cliente = c.id WHERE p.estado='pendiente'")
+    c.execute("SELECT p.id, c.nombre, p.libras, p.saldo FROM pedidos p JOIN clientes c ON p.id_cliente = c.id WHERE p.estado='pendiente'")
     pedidos_pend = c.fetchall()
     
     if not pedidos_pend:
         st.info("No hay pedidos pendientes de pago.")
     else:
-        dict_ped = {f"Pedido #{r[0]} - {r[1]} (Saldo: {r[2]:.1f})": (r[0], r[2]) for r in pedidos_pend}
+        # Formato actualizado: Pedido #ID - Nombre (Lb. X.X, Saldo X.X)
+        dict_ped = {f"Pedido #{r[0]} - {r[1]} (Lb. {r[2]:.1f}, Saldo {r[3]:.1f})": (r[0], r[3]) for r in pedidos_pend}
         ped_sel = st.selectbox("Seleccione Pedido", list(dict_ped.keys()))
         id_ped, saldo_actual = dict_ped[ped_sel]
         
@@ -147,7 +148,6 @@ elif menu == "4º Agregar / Borrar Cliente":
 # 5º VER PENDIENTES
 elif menu == "5º Ver Pendientes":
     st.header("5º Clientes con Pedidos Pendientes")
-    # Consulta agrupada por cliente con la suma de sus saldos pendientes
     c.execute('''SELECT c.id, c.nombre, SUM(p.saldo) 
                  FROM clientes c 
                  JOIN pedidos p ON c.id = p.id_cliente 
@@ -158,13 +158,11 @@ elif menu == "5º Ver Pendientes":
     if not pendientes:
         st.info("🎉 No hay ninguna deuda pendiente.")
     else:
-        # Mostrar la lista con el monto total por cada cliente
         st.table([{
             "ID Cliente": r[0], 
             "Nombre": r[1], 
             "Total Pendiente": f"{r[2]:.1f}"
         } for r in pendientes])
         
-        # Calcular y mostrar el gran total de todos los clientes acumulados
         gran_total_pendiente = sum(r[2] for r in pendientes)
         st.success(f"💵 **GRAN TOTAL PENDIENTE GENERAL: {gran_total_pendiente:.1f}**")
