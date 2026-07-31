@@ -49,7 +49,7 @@ if menu == "1º Ingresar Pedido":
             c.execute("INSERT INTO pedidos (id_cliente, fecha, libras, precio, total, abono, saldo, estado) VALUES (?, ?, ?, ?, ?, 0, ?, 'pendiente')",
                       (id_cli, fecha, libras, precio, total, total))
             conn.commit()
-            st.success(f"✅ Pedido guardado el {fecha}. Total: {total:.2f}")
+            st.success(f"✅ Pedido guardado el {fecha}. Total: {total:.1f}")
 
 # 2º VER CLIENTE
 elif menu == "2º Ver Cliente":
@@ -73,7 +73,21 @@ elif menu == "2º Ver Cliente":
                 if not rows:
                     st.info("No tiene pedidos pendientes.")
                 else:
-                    st.table([{"ID Pedido": r[0], "Fecha": r[1], "Lbs": r[2], "Precio/lb": r[3], "Total": r[4], "Abono": r[5], "Saldo": r[6], "Estado": r[7]} for r in rows])
+                    # Mostrar la tabla formateada a 1 decimal
+                    st.table([{
+                        "ID Pedido": r[0], 
+                        "Fecha": r[1], 
+                        "Lbs": f"{r[2]:.1f}", 
+                        "Precio/lb": f"{r[3]:.1f}", 
+                        "Total": f"{r[4]:.1f}", 
+                        "Abono": f"{r[5]:.1f}", 
+                        "Saldo": f"{r[6]:.1f}", 
+                        "Estado": r[7]
+                    } for r in rows])
+                    
+                    # Calcular y mostrar la suma total del saldo pendiente
+                    monto_total_pendiente = sum(r[6] for r in rows)
+                    st.success(f"💰 **Monto Total Pendiente: {monto_total_pendiente:.1f}**")
 
 # 3º INGRESAR PAGO
 elif menu == "3º Ingresar Pago":
@@ -84,7 +98,7 @@ elif menu == "3º Ingresar Pago":
     if not pedidos_pend:
         st.info("No hay pedidos pendientes de pago.")
     else:
-        dict_ped = {f"Pedido #{r[0]} - {r[1]} (Saldo: {r[2]:.2f})": (r[0], r[2]) for r in pedidos_pend}
+        dict_ped = {f"Pedido #{r[0]} - {r[1]} (Saldo: {r[2]:.1f})": (r[0], r[2]) for r in pedidos_pend}
         ped_sel = st.selectbox("Seleccione Pedido", list(dict_ped.keys()))
         id_ped, saldo_actual = dict_ped[ped_sel]
         
@@ -98,7 +112,7 @@ elif menu == "3º Ingresar Pago":
             if nuevo_saldo == 0:
                 st.success(f"🎉 ¡Pedido #{id_ped} pagado por completo!")
             else:
-                st.success(f"✅ Abono de {monto:.2f} aplicado. Nuevo saldo: {nuevo_saldo:.2f}")
+                st.success(f"✅ Abono de {monto:.1f} aplicado. Nuevo saldo: {nuevo_saldo:.1f}")
 
 # 4º AGREGAR / BORRAR CLIENTE
 elif menu == "4º Agregar / Borrar Cliente":
