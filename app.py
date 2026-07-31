@@ -73,7 +73,6 @@ elif menu == "2º Ver Cliente":
                 if not rows:
                     st.info("No tiene pedidos pendientes.")
                 else:
-                    # Mostrar la tabla formateada a 1 decimal
                     st.table([{
                         "ID Pedido": r[0], 
                         "Fecha": r[1], 
@@ -85,7 +84,6 @@ elif menu == "2º Ver Cliente":
                         "Estado": r[7]
                     } for r in rows])
                     
-                    # Calcular y mostrar la suma total del saldo pendiente
                     monto_total_pendiente = sum(r[6] for r in rows)
                     st.success(f"💰 **Monto Total Pendiente: {monto_total_pendiente:.1f}**")
 
@@ -149,9 +147,24 @@ elif menu == "4º Agregar / Borrar Cliente":
 # 5º VER PENDIENTES
 elif menu == "5º Ver Pendientes":
     st.header("5º Clientes con Pedidos Pendientes")
-    c.execute("SELECT DISTINCT c.id, c.nombre FROM clientes c JOIN pedidos p ON c.id = p.id_cliente WHERE p.estado = 'pendiente'")
+    # Consulta agrupada por cliente con la suma de sus saldos pendientes
+    c.execute('''SELECT c.id, c.nombre, SUM(p.saldo) 
+                 FROM clientes c 
+                 JOIN pedidos p ON c.id = p.id_cliente 
+                 WHERE p.estado = 'pendiente' 
+                 GROUP BY c.id, c.nombre''')
     pendientes = c.fetchall()
+    
     if not pendientes:
         st.info("🎉 No hay ninguna deuda pendiente.")
     else:
-        st.table([{"ID Cliente": r[0], "Nombre": r[1]} for r in pendientes])
+        # Mostrar la lista con el monto total por cada cliente
+        st.table([{
+            "ID Cliente": r[0], 
+            "Nombre": r[1], 
+            "Total Pendiente": f"{r[2]:.1f}"
+        } for r in pendientes])
+        
+        # Calcular y mostrar el gran total de todos los clientes acumulados
+        gran_total_pendiente = sum(r[2] for r in pendientes)
+        st.success(f"💵 **GRAN TOTAL PENDIENTE GENERAL: {gran_total_pendiente:.1f}**")
